@@ -2,7 +2,7 @@
   "name": "CarretoJá — Calculadora de Fretes",
   "short_name": "CarretoJá",
   "description": "Calculadora inteligente de frete com rota, histórico e orçamentos para WhatsApp",
-  "start_url": "./calculadora-frete-maps.html",
+  "start_url": "./calculadora-frete-maps-6.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
