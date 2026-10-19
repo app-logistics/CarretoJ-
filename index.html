@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CarretoJá — Cobre o carreto certo. Nunca mais no prejuízo.</title>
+<meta name="description" content="App para carreteiros e freteiros: preço justo do carreto em segundos, orçamento profissional no WhatsApp, agenda, clientes e lucro real do mês. Grátis para começar.">
+<meta name="theme-color" content="#15181D">
+<meta property="og:title" content="CarretoJá — Cobre o carreto certo">
+<meta property="og:description" content="Preço justo em segundos, orçamento com link no WhatsApp e lucro real no fim do mês. Grátis para começar.">
+<meta property="og:image" content="icon-512.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+:root{
+  --ink:#15181D; --ink-2:#1E222A; --ink-3:#2A2F38; --ink-text:#F2F1EC; --ink-muted:#A9AFB8;
+  --bg:#F7F6F2; --bg-2:#EFEDE6; --surface:#FFFDF8; --border:#E3E1DA; --border-strong:#C9C6BC;
+  --text:#15181D; --muted:#545C69;
+  --brand:#F5B700; --brand-deep:#C99400; --brand-text:#7A5700; --brand-soft:#FFF1C2;
+  --green:#1F7A44; --green-soft:#DDF1E4; --red:#B3361F; --red-soft:#F9E1DC;
+  --display:'Bricolage Grotesque','Inter',system-ui,sans-serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --r:20px; --max:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+img,svg,canvas{display:block}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:8px}
+
+/* ── botões ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;font-weight:700;font-size:16px;transition:transform .15s ease,box-shadow .2s ease,background .2s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn svg{width:20px;height:20px}
+.btn-brand{background:var(--brand);color:var(--ink);box-shadow:0 8px 24px rgba(245,183,0,.35)}
+.btn-brand:hover{box-shadow:0 12px 32px rgba(245,183,0,.5);transform:translateY(-2px)}
+.btn-ghost-dark{color:var(--ink-text);border:1.5px solid #3D434E}
+.btn-ghost-dark:hover{border-color:var(--ink-muted)}
+.btn-dark{background:var(--ink);color:var(--ink-text)}
+.btn-dark:hover{transform:translateY(-2px)}
+.btn-outline{border:1.5px solid var(--border-strong);background:var(--surface)}
+.btn-sm{min-height:42px;padding:0 16px;font-size:15px;border-radius:12px}
+
+/* ── navegação ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .25s,box-shadow .25s}
+.nav.solid{background:rgba(21,24,29,.86);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.nav-in{display:flex;align-items:center;gap:20px;height:72px;padding-top:env(safe-area-inset-top)}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:21px;color:var(--ink-text);letter-spacing:-.3px}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:var(--brand);display:grid;place-items:center}
+.logo-mark svg{width:20px;height:20px;stroke:var(--ink)}
+.nav-links{display:flex;gap:26px;margin-left:24px;color:var(--ink-muted);font-weight:600;font-size:15px}
+.nav-links a:hover{color:var(--ink-text)}
+.nav-cta{margin-left:auto;display:flex;gap:10px;align-items:center}
+.nav-cta .login{color:var(--ink-text);font-weight:600;font-size:15px;padding:10px 12px}
+@media (max-width:860px){ .nav-links{display:none} .nav-cta .btn-brand{min-height:42px;padding:0 14px;font-size:15px} }
+@media (max-width:520px){ .nav-cta .login{display:none} .logo{font-size:19px} .nav-cta .btn-brand{min-height:40px;padding:0 14px;font-size:14px} .nav-in{gap:10px} }
+
+/* ── hero ── */
+.hero{background:radial-gradient(1200px 600px at 75% 30%,#2A2410 0%,transparent 60%),var(--ink);color:var(--ink-text);padding:120px 0 0;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:24px;align-items:center;min-height:min(720px,88vh)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--brand);background:rgba(245,183,0,.1);border:1px solid rgba(245,183,0,.25);padding:6px 12px;border-radius:999px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 0 rgba(245,183,0,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(245,183,0,0)}100%{box-shadow:0 0 0 0 rgba(245,183,0,0)}}
+.h1{font-family:var(--display);font-size:clamp(44px,6.6vw,86px);line-height:.98;letter-spacing:-2px;margin:22px 0 22px;font-weight:600;font-variation-settings:'opsz' 96}
+.h1 .w{display:inline-block;white-space:nowrap}
+.h1 .l{display:inline-block;transition:font-weight .35s ease;font-weight:var(--wg,600)}
+.h1 .hl{color:var(--brand)}
+.lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink-muted);max-width:560px}
+.lead b{color:var(--ink-text);font-weight:600}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;color:var(--ink-muted);font-size:14px;font-weight:500}
+.trust span{display:flex;align-items:center;gap:6px}
+.trust svg{width:16px;height:16px;stroke:var(--brand)}
+.stage{position:relative;height:min(620px,62vw);min-height:380px}
+.stage canvas{width:100%!important;height:100%!important;touch-action:pan-y}
+.stage .fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+.stage.nogl .fallback{display:flex}
+.stage-tag{position:absolute;background:rgba(30,34,42,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid #333944;border-radius:14px;padding:10px 14px;font-size:14px;color:var(--ink-text);box-shadow:0 10px 30px rgba(0,0,0,.35);animation:float 6s ease-in-out infinite;pointer-events:none}
+.stage-tag b{display:block;font-family:var(--display);font-size:22px;color:var(--brand);line-height:1.1}
+.stage-tag small{color:var(--ink-muted)}
+.tag-1{left:2%;top:16%}
+.tag-2{right:2%;bottom:18%;animation-delay:-3s}
+.tag-2 b{color:#7FD3A0}
+@keyframes float{50%{transform:translateY(-10px)}}
+.hint-3d{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);font-size:13px;color:#7D838D;display:flex;gap:6px;align-items:center;pointer-events:none}
+.hint-3d svg{width:16px;height:16px}
+@media (max-width:900px){
+  .hero{padding-top:96px}
+  .hero-grid{grid-template-columns:1fr;min-height:0;gap:0}
+  .stage{height:360px;min-height:0;margin:8px -20px 0}
+  .tag-1{left:20px;top:6%} .tag-2{right:20px;bottom:12%}
+}
+
+/* faixa que corre */
+.marquee{background:var(--brand);color:var(--ink);overflow:hidden;white-space:nowrap;padding:16px 0;font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.3px}
+.marquee-track{display:inline-flex;gap:40px;animation:mq 30s linear infinite;padding-left:40px}
+.marquee:hover .marquee-track{animation-play-state:paused}
+.marquee span{display:inline-flex;align-items:center;gap:40px}
+.marquee span::after{content:'';width:10px;height:10px;border-radius:3px;background:var(--ink);transform:rotate(45deg)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ── seções ── */
+section{padding:110px 0}
+.sec-head{max-width:760px;margin-bottom:56px}
+.kicker{font-weight:700;font-size:14px;color:var(--brand-text);letter-spacing:.3px;margin-bottom:12px;display:block}
+.h2{font-family:var(--display);font-size:clamp(34px,4.6vw,58px);line-height:1.02;letter-spacing:-1.4px;font-weight:300;transition:font-weight .9s cubic-bezier(.2,.7,.2,1),letter-spacing .9s;font-variation-settings:'opsz' 96}
+.h2.in{font-weight:720;letter-spacing:-1.8px}
+.sub{color:var(--muted);font-size:clamp(17px,1.5vw,19px);margin-top:16px;max-width:640px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media (max-width:700px){ section{padding:76px 0} .sec-head{margin-bottom:36px} }
+
+/* simulador */
+.sim{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+.sim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:30px;box-shadow:0 2px 0 rgba(0,0,0,.02),0 18px 40px rgba(21,24,29,.06)}
+.slider{margin-bottom:24px}
+.slider:last-child{margin-bottom:0}
+.slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.slider label{font-weight:600}
+.slider output{font-family:var(--display);font-weight:700;font-size:24px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;background:linear-gradient(to right,var(--brand) var(--p,50%),var(--bg-2) var(--p,50%));outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--ink);border:4px solid var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:grab}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--ink);border:4px solid var(--brand);cursor:grab}
+.sim-out{background:var(--ink);color:var(--ink-text);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden}
+.sim-out::before{content:'';position:absolute;right:-120px;top:-120px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(245,183,0,.22),transparent 65%)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative}
+.cmp div{border-radius:16px;padding:18px;background:var(--ink-2);border:1px solid var(--ink-3)}
+.cmp small{display:block;color:var(--ink-muted);font-size:14px;font-weight:500;margin-bottom:4px}
+.cmp b{font-family:var(--display);font-size:clamp(28px,3.4vw,38px);font-weight:700;letter-spacing:-.8px;line-height:1.1}
+.cmp .bad b{color:#F2A193;text-decoration:line-through;text-decoration-thickness:2px}
+.cmp .good{background:rgba(245,183,0,.1);border-color:rgba(245,183,0,.35)}
+.cmp .good b{color:var(--brand)}
+.gain{position:relative}
+.gain small{color:var(--ink-muted);font-weight:500}
+.gain b{display:block;font-family:var(--display);font-size:clamp(46px,6vw,72px);font-weight:800;letter-spacing:-2px;color:#7FD3A0;line-height:1}
+.gain p{color:var(--ink-muted);font-size:15px;margin-top:6px}
+.sim-note{font-size:14px;color:var(--muted);margin-top:16px}
+@media (max-width:900px){ .sim{grid-template-columns:1fr} }
+
+/* por que */
+.why{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.why-card{border-radius:var(--r);padding:28px;background:var(--bg);border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.why-card:hover{transform:translateY(-6px);box-shadow:0 22px 44px rgba(21,24,29,.1)}
+.why-n{font-family:var(--display);font-size:64px;font-weight:200;line-height:1;color:var(--brand-deep);transition:font-weight .4s;font-variation-settings:'opsz' 96}
+.why-card:hover .why-n{font-weight:800}
+.why-card h3{font-family:var(--display);font-size:23px;line-height:1.15;letter-spacing:-.4px;margin:18px 0 10px;font-weight:700}
+.why-card p{color:var(--muted);font-size:16px}
+@media (max-width:1000px){ .why-grid{grid-template-columns:1fr 1fr} }
+@media (max-width:600px){ .why-grid{grid-template-columns:1fr} }
+
+/* recursos + celular 3D */
+.feat{display:grid;grid-template-columns:1fr 420px;gap:56px;align-items:center}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tilt{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);transition:transform .25s ease,box-shadow .25s;will-change:transform;position:relative}
+.tilt:hover{box-shadow:0 20px 40px rgba(21,24,29,.1)}
+.tilt::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(245,183,0,.16),transparent 60%);opacity:0;transition:opacity .25s;pointer-events:none}
+.tilt:hover::after{opacity:1}
+.f-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#FFD24A,#E8A800);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),0 6px 14px rgba(232,168,0,.35);margin-bottom:14px}
+.f-ic svg{width:24px;height:24px;stroke:var(--ink)}
+.tilt h3{font-size:17px;font-weight:700;margin-bottom:4px}
+.tilt p{color:var(--muted);font-size:15px;line-height:1.45}
+.phone-wrap{perspective:1600px;display:flex;justify-content:center}
+.phone{width:320px;height:660px;border-radius:52px;background:#0E1013;padding:12px;transform:rotateY(var(--py,-16deg)) rotateX(var(--px,6deg));transform-style:preserve-3d;box-shadow:-30px 40px 80px rgba(21,24,29,.35),inset 0 0 0 2px #2A2F38;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.screen{height:100%;border-radius:42px;background:var(--bg);overflow:hidden;padding:46px 16px 16px;display:flex;flex-direction:column;gap:10px;position:relative;font-size:14px}
+.screen::before{content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:999px;background:#0E1013}
+.s-top{display:flex;justify-content:space-between;align-items:center}
+.s-logo{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px}
+.s-logo i{width:20px;height:20px;border-radius:6px;background:var(--brand)}
+.s-av{width:28px;height:28px;border-radius:50%;background:var(--bg-2);border:1px solid var(--border);font-size:11px;font-weight:700;display:grid;place-items:center}
+.s-h{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.5px;line-height:1.1}
+.s-dark{background:var(--ink);color:var(--ink-text);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.s-dark .y{color:var(--brand);font-weight:700;font-size:12px}
+.s-dark b{font-size:17px}
+.s-dark small{color:var(--ink-muted);font-size:12px}
+.s-btns{display:flex;gap:6px;margin-top:8px}
+.s-btns span{font-size:12px;font-weight:700;padding:6px 10px;border-radius:9px;background:var(--brand);color:var(--ink)}
+.s-btns span+span{background:none;border:1px solid #4A515C;color:var(--ink-text)}
+.s-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.s-row{display:flex;justify-content:space-between;font-size:13px}
+.s-row span{color:var(--muted)}
+.s-alert{background:#FCEBD9;border-left:4px solid #D9822B;border-radius:10px;padding:10px 12px;font-size:13px}
+.s-alert b{display:block}
+.s-alert span{color:#8A4A0E;font-weight:600}
+.s-nav{margin-top:auto;display:flex;justify-content:space-around;align-items:center;padding-top:8px;border-top:1px solid var(--border)}
+.s-nav i{width:18px;height:18px;border-radius:5px;background:var(--border-strong)}
+.s-nav i.on{background:var(--ink)}
+.s-nav em{width:44px;height:44px;border-radius:50%;background:var(--brand);display:grid;place-items:center;font-style:normal;font-weight:700;font-size:24px;margin-top:-18px;box-shadow:0 4px 12px rgba(245,183,0,.45)}
+@media (max-width:1000px){ .feat{grid-template-columns:1fr} .phone-wrap{order:-1} }
+@media (max-width:560px){ .feat-grid{grid-template-columns:1fr} .phone{width:280px;height:580px} }
+
+/* como funciona */
+.how{background:var(--ink);color:var(--ink-text)}
+.how .kicker{color:var(--brand)}
+.how .sub{color:var(--ink-muted)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+.step{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:var(--r);padding:30px;position:relative;overflow:hidden}
+.step::before{counter-increment:s;content:counter(s);font-family:var(--display);font-weight:800;font-size:120px;line-height:1;position:absolute;right:16px;top:-6px;color:transparent;-webkit-text-stroke:1.5px #3D434E}
+.step h3{font-family:var(--display);font-size:26px;letter-spacing:-.5px;margin-bottom:10px;position:relative;font-weight:700}
+.step p{color:var(--ink-muted);position:relative}
+.bubble{margin-top:22px;background:#0B3D2A;color:#E6F5EC;border-radius:16px 16px 16px 4px;padding:14px 16px;font-size:14px;line-height:1.5;position:relative;max-width:300px}
+.bubble a{color:#7FD3E8;text-decoration:underline}
+.mini-btn{display:inline-block;margin-top:20px;background:var(--green);color:#fff;font-weight:700;border-radius:12px;padding:12px 18px;font-size:15px;position:relative}
+.mini-stat{margin-top:20px;display:flex;flex-direction:column;position:relative}
+.mini-stat small{color:var(--ink-muted)}
+.mini-stat b{font-family:var(--display);font-size:44px;color:var(--brand);letter-spacing:-1px;line-height:1.05}
+@media (max-width:900px){ .steps{grid-template-columns:1fr} }
+
+/* comparação */
+.table-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border);background:var(--surface)}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:18px 20px;text-align:left;border-bottom:1px solid var(--border);font-size:16px}
+th{font-weight:600;color:var(--muted);font-size:14px}
+th.me{color:var(--ink);background:var(--brand-soft)}
+td.me{background:#FFF8DC;font-weight:600}
+tr:last-child td{border-bottom:none}
+.yes,.no,.meh{display:inline-flex;align-items:center;gap:8px}
+.yes svg{stroke:var(--green)} .no svg{stroke:var(--red)} .meh svg{stroke:#B07A10}
+.yes svg,.no svg,.meh svg{width:20px;height:20px;flex-shrink:0}
+
+/* planos */
+.billing{display:inline-flex;background:var(--bg-2);border-radius:14px;padding:5px;margin-bottom:34px}
+.billing button{padding:10px 20px;border-radius:10px;font-weight:600;color:var(--muted);display:flex;gap:8px;align-items:center}
+.billing button.on{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.billing em{font-style:normal;font-size:12px;font-weight:700;background:var(--green-soft);color:var(--green);padding:2px 8px;border-radius:999px}
+.plans{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:20px;align-items:stretch}
+.plan{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px;display:flex;flex-direction:column;gap:18px;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.plan:hover{transform:translateY(-6px)}
+.plan h3{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.4px}
+.plan .desc{color:var(--muted);font-size:15px;margin-top:-10px}
+.price{display:flex;align-items:baseline;gap:6px}
+.price b{font-family:var(--display);font-size:54px;font-weight:800;letter-spacing:-2px;line-height:1}
+.price span{color:var(--muted);font-weight:500}
+.price-note{font-size:14px;color:var(--muted);min-height:20px;margin-top:-10px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:12px;flex:1}
+.plan li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.plan li svg{width:20px;height:20px;stroke:var(--green);flex-shrink:0;margin-top:2px}
+.plan.pro{background:var(--ink);color:var(--ink-text);border-color:var(--ink);box-shadow:0 30px 60px rgba(21,24,29,.25);position:relative}
+.plan.pro .desc,.plan.pro .price span,.plan.pro .price-note{color:var(--ink-muted)}
+.plan.pro .price b{color:var(--brand)}
+.plan.pro li svg{stroke:var(--brand)}
+.badge{position:absolute;top:-14px;right:24px;background:var(--brand);color:var(--ink);font-weight:800;font-size:13px;padding:6px 14px;border-radius:999px}
+.plan.soon{border-style:dashed;background:transparent}
+.soon-tag{font-size:13px;font-weight:700;color:var(--muted);background:var(--bg-2);padding:3px 10px;border-radius:999px;margin-left:8px;vertical-align:middle;font-family:var(--sans);letter-spacing:0}
+.launch{display:flex;gap:14px;align-items:center;background:var(--brand-soft);border:1px solid #F0D98A;border-radius:18px;padding:18px 22px;margin-top:28px}
+.launch svg{width:28px;height:28px;stroke:var(--brand-text);flex-shrink:0}
+.launch p{font-size:16px}
+.conds{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+.cond{display:flex;gap:10px;align-items:center;font-weight:600;font-size:15px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+.cond svg{width:22px;height:22px;stroke:var(--green);flex-shrink:0}
+@media (max-width:1000px){ .plans{grid-template-columns:1fr;max-width:520px} .conds{grid-template-columns:1fr 1fr} }
+@media (max-width:560px){ .conds{grid-template-columns:1fr} }
+
+/* dúvidas */
+.faq{max-width:820px}
+details{border-bottom:1px solid var(--border);padding:6px 0}
+summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;font-family:var(--display);font-size:21px;font-weight:600;letter-spacing:-.3px}
+summary::-webkit-details-marker{display:none}
+summary i{width:36px;height:36px;border-radius:50%;background:var(--bg-2);display:grid;place-items:center;flex-shrink:0;transition:transform .3s,background .3s}
+summary i svg{width:18px;height:18px}
+details[open] summary i{transform:rotate(45deg);background:var(--brand)}
+details p{color:var(--muted);padding:0 52px 20px 0;font-size:17px}
+
+/* CTA final */
+.final{background:radial-gradient(900px 500px at 20% 0%,#2A2410 0%,transparent 60%),var(--ink);color:var(--ink-text);border-radius:32px;padding:clamp(36px,6vw,72px);display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;margin:0 20px}
+.final .h2{color:var(--ink-text)}
+.final .sub{color:var(--ink-muted)}
+.signup{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:22px;padding:26px}
+@media (max-width:900px){ .final{grid-template-columns:1fr;margin:0 12px;border-radius:24px} }
+
+/* formulário de acesso (seção final e modal) */
+.form{display:flex;flex-direction:column;gap:12px}
+.form label{font-size:14px;font-weight:600;color:var(--ink-muted)}
+.form .in{min-height:56px;border-radius:14px;border:1.5px solid #3D434E;background:#12151A;color:var(--ink-text);padding:0 16px;font-size:17px;outline:none;transition:border-color .2s}
+.form .in:focus{border-color:var(--brand)}
+.form .in.code{font-family:var(--display);font-size:28px;letter-spacing:10px;text-align:center;font-weight:700}
+.form .msg{font-size:14px;min-height:20px;color:var(--ink-muted)}
+.form .msg.err{color:#F2A193}
+.form .msg.ok{color:#7FD3A0}
+.form .alt{color:var(--ink-muted);font-size:14px;text-align:center;font-weight:600;padding:6px}
+.form .alt:hover{color:var(--ink-text)}
+.form h3{font-family:var(--display);font-size:26px;letter-spacing:-.4px;color:var(--ink-text)}
+.form p.small{color:var(--ink-muted);font-size:15px}
+
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.modal-bg{position:absolute;inset:0;background:rgba(10,12,15,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fade .25s}
+.modal-card{position:relative;width:min(440px,100%);background:var(--ink-2);border:1px solid var(--ink-3);border-radius:24px;padding:28px;animation:up .3s cubic-bezier(.2,.7,.2,1)}
+.modal-x{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink-muted)}
+.modal-x svg{width:20px;height:20px}
+@keyframes fade{from{opacity:0}} @keyframes up{from{opacity:0;transform:translateY(24px) scale(.98)}}
+
+footer{padding:56px 0 calc(40px + env(safe-area-inset-bottom));color:var(--muted);font-size:15px}
+.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+.foot .logo{color:var(--text)}
+.foot nav{display:flex;gap:20px;flex-wrap:wrap}
+.foot nav a:hover{color:var(--text)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="logo" aria-label="CarretoJá, início"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>CarretoJá</a>
+    <nav class="nav-links" aria-label="Seções">
+      <a href="#simulador">Simulador</a><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="login" data-auth="login">Entrar</button>
+      <button class="btn btn-brand btn-sm" data-auth="signup">Começar grátis</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero" style="padding-bottom:0">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><i></i>Para carreteiros e freteiros autônomos</span>
+      <h1 class="h1" id="hero-title" aria-label="Cobre o carreto certo. Nunca mais no prejuízo.">Cobre o carreto <span class="hl">certo.</span> Nunca mais no prejuízo.</h1>
+      <p class="lead">O CarretoJá calcula o <b>preço justo em segundos</b> (km, tempo, ajudante e escada), manda o orçamento no WhatsApp com <b>link profissional</b> e mostra <b>quanto você lucrou de verdade</b> no mês.</p>
+      <div class="hero-cta">
+        <button class="btn btn-brand" data-auth="signup">Começar grátis <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <a class="btn btn-ghost-dark" href="#simulador">Calcular quanto perco</a>
+      </div>
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Grátis para começar</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sem cartão</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sem comissão por carreto</span>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="truck3d" aria-label="Caminhão baú do CarretoJá em 3D, girando entre a coleta (A) e a entrega (B)" role="img"></canvas>
+      <div class="fallback" aria-hidden="true">
+        <svg width="420" height="260" viewBox="0 0 420 260"><ellipse cx="210" cy="230" rx="170" ry="16" fill="#000" opacity=".3"/><rect x="40" y="60" width="210" height="140" rx="10" fill="#F7F6F2"/><rect x="40" y="160" width="210" height="18" fill="#F5B700"/><path d="M250 100h70l40 45v55H250z" fill="#F5B700"/><path d="M265 110h50l28 32h-78z" fill="#2B3A4A"/><circle cx="100" cy="205" r="26" fill="#1B1E24"/><circle cx="310" cy="205" r="26" fill="#1B1E24"/><circle cx="100" cy="205" r="11" fill="#9AA0A8"/><circle cx="310" cy="205" r="11" fill="#9AA0A8"/></svg>
+      </div>
+      <div class="stage-tag tag-1"><small>Preço sugerido</small><b class="num">R$ 240,00</b><small>30 km · 1 ajudante · 2 h</small></div>
+      <div class="stage-tag tag-2"><small>Seu lucro no carreto</small><b class="num">R$ 149,50</b></div>
+      <div class="hint-3d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11V5a2 2 0 1 1 4 0v5m0-1a2 2 0 1 1 4 0v2m0-1a2 2 0 1 1 4 0v4a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.5L4.5 14a2 2 0 0 1 3.4-2L9 13"/></svg>Arraste para girar</div>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true"><div class="marquee-track">
+    <span>Mudança</span><span>Entrega de loja</span><span>Material de construção</span><span>Móveis e eletros</span><span>Descarte e entulho</span><span>Frete rápido</span>
+    <span>Mudança</span><span>Entrega de loja</span><span>Material de construção</span><span>Móveis e eletros</span><span>Descarte e entulho</span><span>Frete rápido</span>
+  </div></div>
+</section>
+
+<!-- ═══════════ SIMULADOR ═══════════ -->
+<section id="simulador">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">SIMULADOR</span>
+      <h2 class="h2">Quanto você está deixando na mesa?</h2>
+      <p class="sub">Quem cobra só pela distância trabalha de graça na hora de carregar, subir escada e pagar o ajudante. Mexa nos valores e veja a diferença.</p>
+    </div>
+    <div class="sim reveal">
+      <div class="sim-card">
+        <div class="slider"><div class="slider-top"><label for="s-km">Distância total</label><output id="o-km" class="num">30 km</output></div><input type="range" id="s-km" min="3" max="120" step="1" value="30"></div>
+        <div class="slider"><div class="slider-top"><label for="s-h">Tempo do serviço</label><output id="o-h" class="num">2 h</output></div><input type="range" id="s-h" min="0.5" max="8" step="0.5" value="2"></div>
+        <div class="slider"><div class="slider-top"><label for="s-aj">Ajudantes</label><output id="o-aj" class="num">1</output></div><input type="range" id="s-aj" min="0" max="3" step="1" value="1"></div>
+        <div class="slider"><div class="slider-top"><label for="s-an">Andares de escada</label><output id="o-an" class="num">0</output></div><input type="range" id="s-an" min="0" max="10" step="1" value="0"></div>
+        <div class="slider"><div class="slider-top"><label for="s-mes">Carretos por mês</label><output id="o-mes" class="num">20</output></div><input type="range" id="s-mes" min="4" max="80" step="1" value="20"></div>
+      </div>
+      <div class="sim-out" aria-live="polite">
+        <div class="cmp">
+          <div class="bad"><small>Cobrando só por km</small><b class="num" id="r-km">R$ 74,93</b></div>
+          <div class="good"><small>Com o CarretoJá</small><b class="num" id="r-cj">R$ 240,00</b></div>
+        </div>
+        <div class="gain"><small>A mais no seu bolso por mês</small><b class="num" id="r-mes">R$ 3.201</b><p id="r-por">R$ 160,07 a mais por carreto</p></div>
+        <button class="btn btn-brand" data-auth="signup" style="align-self:flex-start;position:relative">Quero cobrar o preço certo</button>
+      </div>
+    </div>
+    <p class="sim-note">Exemplo com combustível a R$ 6,30/L, consumo de 7 km/L, sua hora a R$ 35, ajudante a R$ 50, escada a R$ 10 por andar e 35% de margem. No app você usa os seus valores.</p>
+  </div>
+</section>
+
+<!-- ═══════════ POR QUE ═══════════ -->
+<section class="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">POR QUE O CARRETOJÁ</span>
+      <h2 class="h2">Caderno, calculadora e WhatsApp não mostram o seu prejuízo.</h2>
+    </div>
+    <div class="why-grid">
+      <article class="why-card reveal"><div class="why-n">01</div><h3>Preço que nunca dá prejuízo</h3><p>Combustível, desgaste, tempo, ajudante, escada, pedágio e valor mínimo. Tudo entra na conta antes de você responder o cliente.</p></article>
+      <article class="why-card reveal"><div class="why-n">02</div><h3>Orçamento com cara de empresa</h3><p>O cliente recebe um link com a rota, o que está incluso, a validade e o seu Pix. Para aceitar, é só um toque.</p></article>
+      <article class="why-card reveal"><div class="why-n">03</div><h3>O cliente é seu, sem comissão</h3><p>Diferente dos apps de entrega, ninguém fica com uma parte do seu carreto. Os clientes e o histórico são seus.</p></article>
+      <article class="why-card reveal"><div class="why-n">04</div><h3>Lucro de verdade no fim do mês</h3><p>Recebido menos gastos. Você vê quem ainda deve e cobra pelo WhatsApp sem constrangimento.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ RECURSOS ═══════════ -->
+<section id="recursos">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">RECURSOS</span>
+      <h2 class="h2">Tudo o que o carreteiro usa no dia, em um app só.</h2>
+      <p class="sub">Feito para usar com uma mão, na rua e no sol. Botões grandes, poucos toques e funciona até sem internet.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-grid">
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M8 7h8M8 11h2M12 11h0M16 11h0M8 15h2M12 15h0M16 15h0M8 18.5h8"/></svg></div><h3>Orçamento em 4 toques</h3><p>Cliente, destino, extras e enviar. O preço sugerido aparece na hora.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/></svg></div><h3>Rota no mapa</h3><p>Várias paradas, distância exata e botão para abrir no Maps ou Waze.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></div><h3>Agenda do dia</h3><p>O que você tem hoje e na semana, com horário, endereço e status.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3.3-5.5 6.5-5.5s5.9 2.1 6.5 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.6.8 2.7 2.6 3 5.2"/></svg></div><h3>Clientes e histórico</h3><p>Quem já contratou, endereços usados e quanto cada um já pagou.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></div><h3>Cobrança no WhatsApp</h3><p>Veja quem deve e envie o lembrete com a sua chave Pix em um toque.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H19v4"/><rect x="3" y="7" width="18" height="13" rx="2.5"/><circle cx="16.5" cy="13.5" r="1.3"/></svg></div><h3>Gastos e lucro real</h3><p>Lance combustível e manutenção. O app mostra o que sobrou de verdade.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 0 0 4.3 12 3.5 3.5 0 0 0 6.5 19z"/><path d="m9 14 2 2 4-4"/></svg></div><h3>Salvo na nuvem</h3><p>Trocou de celular? Entre com seu e-mail e está tudo lá.</p></div>
+        <div class="tilt reveal"><div class="f-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0M5.5 12.4a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg></div><h3>Funciona sem sinal</h3><p>Orce digitando os km. Quando a internet voltar, tudo sincroniza sozinho.</p></div>
+      </div>
+      <div class="phone-wrap reveal" id="phone-wrap">
+        <div class="phone" id="phone" aria-label="Tela inicial do app CarretoJá mostrando o próximo carreto, o lucro do mês e um alerta de cobrança" role="img">
+          <div class="screen">
+            <div class="s-top"><div class="s-logo"><i></i>CarretoJá</div><div class="s-av">LL</div></div>
+            <div><div style="color:var(--muted);font-size:12px;font-weight:600">Segunda, 19 de outubro</div><div class="s-h">Bom dia, Leonardo</div></div>
+            <div class="s-dark"><span class="y">Próximo · hoje · 14:00</span><b>João Silva</b><small>1º de Maio → Centro · 30 km</small><div class="s-btns"><span>Navegar</span><span>WhatsApp</span></div></div>
+            <div class="s-card"><div class="s-row"><span>Lucro real de outubro</span><b style="color:var(--green)">R$ 1.870</b></div><div class="s-row"><span>A receber</span><b>R$ 340</b></div></div>
+            <div class="s-alert"><b>2 clientes devem R$ 340</b><span>Cobrar →</span></div>
+            <div class="s-card"><div class="s-row"><b>Maria · 09:00</b><b>R$ 180</b></div><div class="s-row"><span>Mudança · Vila Branca</span><span style="background:#FFF1C2;color:#7A5700;padding:1px 8px;border-radius:999px;font-weight:600">Agendado</span></div></div>
+            <div class="s-nav"><i class="on"></i><i></i><em>+</em><i></i><i></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMO FUNCIONA ═══════════ -->
+<section class="how" id="como">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">COMO FUNCIONA</span>
+      <h2 class="h2" style="color:var(--ink-text)">Do pedido ao Pix, sem planilha.</h2>
+      <p class="sub">O cliente chamou no WhatsApp? Em menos de um minuto ele tem um orçamento profissional nas mãos.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Orce em segundos</h3><p>Escolha o cliente, o destino e os extras. O CarretoJá sugere o preço e mostra o seu lucro antes de enviar.</p>
+        <div class="mini-stat"><small>Preço sugerido</small><b class="num">R$ 240,00</b></div></div>
+      <div class="step reveal"><h3>O cliente aceita pelo link</h3><p>Ele recebe a mensagem no WhatsApp, abre o link e confirma com um toque. Você só marca a data na agenda.</p>
+        <div class="bubble">Olá, João! Segue o orçamento do seu carreto: <b>1º de Maio → Centro (30 km)</b> · Valor: <b>R$ 240,00</b><br><a>Ver e confirmar</a></div></div>
+      <div class="step reveal"><h3>Receba e veja o lucro</h3><p>Concluiu? Marque como pago no Pix, dinheiro ou cartão. O lucro real do mês se atualiza sozinho.</p>
+        <span class="mini-btn">Recebi · Pix</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COMPARAÇÃO ═══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">COMPARE</span>
+      <h2 class="h2">Por que não continuar como está?</h2>
+    </div>
+    <div class="table-wrap reveal">
+      <table>
+        <thead><tr><th style="width:34%"></th><th>Caderno + WhatsApp</th><th>Apps de entrega</th><th class="me">CarretoJá</th></tr></thead>
+        <tbody>
+          <tr><td>Preço calculado com tempo, ajudante e escada</td><td><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>No olho</span></td><td><span class="meh"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>A plataforma define</span></td><td class="me"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Você define, o app calcula</span></td></tr>
+          <tr><td>Comissão sobre o seu carreto</td><td><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Nenhuma</span></td><td><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Por corrida</span></td><td class="me"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Nenhuma</span></td></tr>
+          <tr><td>O cliente é seu</td><td><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sim</span></td><td><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Da plataforma</span></td><td class="me"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sim, com histórico</span></td></tr>
+          <tr><td>Orçamento profissional com link</td><td><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Texto solto</span></td><td><span class="meh"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>Com a marca deles</span></td><td class="me"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Com o seu nome e Pix</span></td></tr>
+          <tr><td>Agenda, cobrança e lucro do mês</td><td><span class="no"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Espalhado</span></td><td><span class="meh"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>Só o que passa por eles</span></td><td class="me"><span class="yes"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo junto</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PLANOS ═══════════ -->
+<section id="planos" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">PLANOS</span>
+      <h2 class="h2">Comece grátis. Assine quando o app já estiver se pagando.</h2>
+      <p class="sub">Se o CarretoJá evitar um carreto com prejuízo por mês, o Pro já se pagou.</p>
+    </div>
+    <div class="billing" role="group" aria-label="Forma de cobrança">
+      <button class="on" data-bill="m" aria-pressed="true">Mensal</button>
+      <button data-bill="a" aria-pressed="false">Anual <em>−33%</em></button>
+    </div>
+    <div class="plans">
+      <div class="plan reveal">
+        <h3>Grátis</h3><p class="desc">Para começar a cobrar certo hoje.</p>
+        <div class="price"><b class="num">R$ 0</b><span>para sempre</span></div><div class="price-note">&nbsp;</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Calculadora completa do carreto</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Até 10 orçamentos por mês</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Agenda da semana</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Envio pelo WhatsApp</li>
+        </ul>
+        <button class="btn btn-outline" data-auth="signup">Criar conta grátis</button>
+      </div>
+      <div class="plan pro reveal">
+        <span class="badge">Mais escolhido</span>
+        <h3>Pro</h3><p class="desc">Para quem vive de carreto.</p>
+        <div class="price"><b class="num" id="pro-price">R$ 19,90</b><span id="pro-per">/mês</span></div><div class="price-note" id="pro-note">ou R$ 159 por ano</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Orçamentos ilimitados</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Link do orçamento com Aceitar e Pix</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Clientes e histórico ilimitados</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>A receber, gastos e lucro real</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Lembretes de cobrança</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Nuvem e backup</li>
+        </ul>
+        <button class="btn btn-brand" data-auth="signup">Começar agora</button>
+      </div>
+      <div class="plan soon reveal">
+        <h3>Frota <span class="soon-tag">Em breve</span></h3><p class="desc">Para quem tem mais de um veículo.</p>
+        <div class="price"><b class="num">R$ 49,90</b><span>/mês</span></div><div class="price-note">&nbsp;</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Tudo do Pro</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Vários veículos e motoristas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Acesso por motorista</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Relatórios por veículo</li>
+        </ul>
+        <button class="btn btn-outline" data-auth="signup">Entrar na lista</button>
+      </div>
+    </div>
+    <div class="launch reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></svg>
+      <p><b>Lançamento:</b> quem criar a conta agora usa todos os recursos do Pro liberados. Avisamos com antecedência antes de qualquer cobrança.</p>
+    </div>
+    <div class="conds">
+      <div class="cond reveal"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M4 4l16 16"/></svg>Sem cartão para começar</div>
+      <div class="cond reveal"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Sem fidelidade, cancele quando quiser</div>
+      <div class="cond reveal"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>Zero comissão nos seus carretos</div>
+      <div class="cond reveal"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Seus dados são seus: exporte quando quiser</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DÚVIDAS ═══════════ -->
+<section id="duvidas" style="background:var(--surface);border-top:1px solid var(--border)">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="kicker">DÚVIDAS</span><h2 class="h2">Perguntas frequentes</h2></div>
+    <div class="faq">
+      <details><summary>Preciso instalar alguma coisa?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Não. O CarretoJá abre no navegador do celular. Se quiser, toque em “Adicionar à tela inicial” e ele fica com ícone, igual a um aplicativo.</p></details>
+      <details><summary>Funciona sem internet?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Sim. Você faz o orçamento digitando os km, marca serviços e lança gastos. Quando a internet voltar, tudo sobe para a nuvem sozinho. Só a rota pelo mapa precisa de sinal.</p></details>
+      <details><summary>Como o cliente aceita o orçamento?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Ele recebe a mensagem no WhatsApp com um link. A página mostra a rota, o que está incluso, o valor e o seu Pix. Ao tocar em “Aceitar e agendar”, abre uma conversa com você já com a confirmação escrita.</p></details>
+      <details><summary>Posso usar os meus próprios valores?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Sim. Preço do combustível, consumo do veículo, desgaste, valor da sua hora, ajudante, escada, desmontagem, mínimo por serviço e margem. Você ajusta tudo, e o preço sugerido sempre pode ser alterado antes de enviar.</p></details>
+      <details><summary>Meus dados ficam seguros?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Ficam salvos na nuvem e só a sua conta tem acesso. Você também pode baixar um backup em arquivo quando quiser.</p></details>
+      <details><summary>O CarretoJá cobra comissão ou me manda clientes?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Não cobramos comissão. O CarretoJá é a sua ferramenta de trabalho para os clientes que já chegam até você pelo WhatsApp, indicação ou redes sociais.</p></details>
+      <details><summary>Preciso de senha para entrar?<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></i></summary><p>Não. Você digita o seu e-mail e recebe um link de acesso. Nada de senha para esquecer.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CTA FINAL ═══════════ -->
+<section id="criar">
+  <div class="final reveal">
+    <div>
+      <span class="kicker" style="color:var(--brand)">COMECE AGORA</span>
+      <h2 class="h2">O próximo orçamento já pode sair no preço certo.</h2>
+      <p class="sub">Crie sua conta grátis em menos de um minuto. Sem senha e sem cartão.</p>
+    </div>
+    <div class="signup" id="signup-inline"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a href="#top" class="logo"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>CarretoJá</a>
+    <nav aria-label="Rodapé"><a href="#recursos">Recursos</a><a href="#planos">Planos</a><a href="#duvidas">Dúvidas</a><a href="carretoja.html">Abrir o app</a></nav>
+    <span>© 2026 CarretoJá</span>
+  </div>
+</footer>
+
+<!-- modal de acesso -->
+<div class="modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div class="modal-bg" data-close></div>
+  <div class="modal-card">
+    <button class="modal-x" data-close aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div id="auth-box"></div>
+  </div>
+</div>
+
+<script>
+/* ═════════ Acesso (Supabase, mesma conta do app) ═════════ */
+const SUPABASE_URL='https://yqnknobetulndanqxvsh.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlxbmtub2JldHVsbmRhbnF4dnNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MjcyNjUsImV4cCI6MjEwODAwMzI2NX0.4qnpvJJoapAe-hYnO7ubvvY6SU0POJXd68jimLZ70gQ';
+const APP_URL = new URL('carretoja.html', location.href).href;
+let sb=null, session=null, authMode='signup', authEmail='', authSent=false;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function formHTML(where){
+  if(session) return `<div class="form"><h3>Você já está conectado</h3><p class="small">${esc(session.user.email)}</p><a class="btn btn-brand" href="${APP_URL}">Abrir o app</a></div>`;
+  if(authSent) return `<div class="form">
+      <h3>Confira seu e-mail</h3>
+      <p class="small">Enviamos um link para <b style="color:var(--ink-text)">${esc(authEmail)}</b>. Toque nele <b style="color:var(--ink-text)">neste aparelho</b> para entrar.</p>
+      <label for="code-${where}">Ou digite o código de 6 dígitos</label>
+      <input class="in code num" id="code-${where}" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······">
+      <button class="btn btn-brand" data-act="verify" data-w="${where}">Entrar com o código</button>
+      <div class="msg" id="msg-${where}"></div>
+      <button class="alt" data-act="reset">Usar outro e-mail</button></div>`;
+  return `<div class="form">
+      <h3 id="${where==='modal'?'auth-title':'t-'+where}">${authMode==='login'?'Entrar no CarretoJá':'Criar conta grátis'}</h3>
+      <p class="small">${authMode==='login'?'Digite seu e-mail e enviamos um link de acesso.':'Sem senha: você recebe um link de acesso no e-mail.'}</p>
+      <label for="email-${where}">Seu e-mail</label>
+      <input class="in" id="email-${where}" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="${esc(authEmail)}">
+      <button class="btn btn-brand" data-act="send" data-w="${where}">${authMode==='login'?'Receber link de acesso':'Criar minha conta'}</button>
+      <div class="msg" id="msg-${where}"></div>
+      <button class="alt" data-act="local">Testar sem conta (só neste celular)</button></div>`;
+}
+function paintForms(){ $('#signup-inline').innerHTML=formHTML('inline'); $('#auth-box').innerHTML=formHTML('modal'); }
+function msg(where,text,cls){ const m=$('#msg-'+where); if(m){ m.textContent=text; m.className='msg '+(cls||''); } }
+function openAuth(mode){
+  if(session){ location.href=APP_URL; return; }
+  authMode=mode||'signup'; paintForms();
+  $('#auth-modal').classList.add('open'); document.body.style.overflow='hidden';
+  setTimeout(()=>($('#email-modal')||$('#code-modal'))?.focus(),60);
+}
+function closeAuth(){ $('#auth-modal').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('click',async e=>{
+  const a=e.target.closest('[data-auth]'); if(a){ e.preventDefault(); openAuth(a.dataset.auth); return; }
+  if(e.target.closest('[data-close]')){ closeAuth(); return; }
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const w=b.dataset.w, act=b.dataset.act;
+  if(act==='local'){ try{ localStorage.setItem('cj2_local_mode','1'); }catch(_){} location.href=APP_URL; return; }
+  if(act==='reset'){ authSent=false; paintForms(); return; }
+  if(!sb){ msg(w,'Sem conexão com o servidor. Tente de novo em instantes.','err'); return; }
+  if(act==='send'){
+    const email=($('#email-'+w).value||'').trim().toLowerCase();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg(w,'Digite um e-mail válido.','err'); return; }
+    authEmail=email; b.disabled=true; b.textContent='Enviando…';
+    const {error}=await sb.auth.signInWithOtp({email, options:{emailRedirectTo:APP_URL}});
+    if(error){ b.disabled=false; b.textContent='Tentar de novo'; msg(w,/rate|seconds/i.test(error.message)?'Aguarde um minuto antes de pedir outro link.':'Não consegui enviar: '+error.message,'err'); return; }
+    authSent=true; paintForms(); setTimeout(()=>$('#code-'+w)?.focus(),60);
+  }
+  if(act==='verify'){
+    const token=($('#code-'+w).value||'').replace(/\D/g,'');
+    if(token.length!==6){ msg(w,'O código tem 6 dígitos.','err'); return; }
+    b.disabled=true; b.textContent='Entrando…';
+    const {error}=await sb.auth.verifyOtp({email:authEmail, token, type:'email'});
+    if(error){ b.disabled=false; b.textContent='Entrar com o código'; msg(w,'Código inválido ou vencido. Peça um novo link.','err'); return; }
+    msg(w,'Pronto! Abrindo o app…','ok'); location.href=APP_URL;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeAuth();
+  if(e.key==='Enter' && e.target.matches('.form .in')){ e.target.closest('.form').querySelector('[data-act="send"],[data-act="verify"]')?.click(); }
+});
+window.addEventListener('DOMContentLoaded', async ()=>{
+  paintForms();
+  if(!window.supabase) return;
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'implicit'}});
+  try{
+    const {data}=await sb.auth.getSession(); session=data.session;
+    if(session && /access_token/.test(location.hash)){ location.replace(APP_URL); return; }
+    if(session){
+      $$('[data-auth]').forEach(b=>{ if(b.classList.contains('login')) b.textContent='Abrir o app'; else if(b.closest('.nav-cta')) b.textContent='Abrir o app'; });
+      paintForms();
+    }
+  }catch(_){}
+});
+
+/* ═════════ Título interativo (fonte variável) ═════════ */
+(function(){
+  const h=$('#hero-title'); if(!h) return;
+  // quebra em palavras e letras, mantendo o destaque em amarelo
+  const walk=(node,cls)=>{
+    const out=document.createDocumentFragment();
+    node.childNodes.forEach(n=>{
+      if(n.nodeType===3){
+        n.textContent.split(/(\s+)/).forEach(part=>{
+          if(!part) return;
+          if(/^\s+$/.test(part)){ out.appendChild(document.createTextNode(' ')); return; }
+          const w=document.createElement('span'); w.className='w'+(cls?' '+cls:''); w.setAttribute('aria-hidden','true');
+          [...part].forEach(ch=>{ const l=document.createElement('span'); l.className='l'; l.textContent=ch; w.appendChild(l); });
+          out.appendChild(w);
+        });
+      } else out.appendChild(walk(n,n.className));
+    });
+    return out;
+  };
+  const frag=walk(h,''); h.textContent=''; h.appendChild(frag);
+  const letters=[...h.querySelectorAll('.l')];
+  let rects=[];
+  const measure=()=>{ rects=letters.map(l=>{ const r=l.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2+scrollY}; }); };
+  const setW=(px,py)=>{ letters.forEach((l,i)=>{ const r=rects[i]; if(!r) return; const d=Math.hypot(px-r.x, py-(r.y-scrollY)); const k=Math.max(0,1-d/260); l.style.setProperty('--wg', Math.round(560+k*240)); }); };
+  measure(); addEventListener('resize',measure); document.fonts?.ready.then(measure);
+  const hero=$('.hero');
+  if(matchMedia('(hover:hover)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    hero.addEventListener('pointermove',e=>setW(e.clientX,e.clientY));
+    hero.addEventListener('pointerleave',()=>letters.forEach(l=>l.style.removeProperty('--wg')));
+  }
+  // onda automática (celular e ao carregar)
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const wave=()=>{ letters.forEach((l,i)=>setTimeout(()=>{ l.style.setProperty('--wg',800); setTimeout(()=>l.style.removeProperty('--wg'),380); }, i*28)); };
+    setTimeout(wave,700);
+    if(!matchMedia('(hover:hover)').matches){ setInterval(()=>{ if(scrollY<400) wave(); },6000); h.addEventListener('click',wave); }
+  }
+})();
+
+/* ═════════ Simulador ═════════ */
+(function(){
+  const S={precoLitro:6.30, consumo:7, depr:0.45, taxa:15, margem:35, hora:35, ajud:50, andar:10, minimo:80, arred:5};
+  const BRL=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const BR0=n=>'R$ '+Math.round(n).toLocaleString('pt-BR');
+  const ids=['km','h','aj','an','mes'];
+  const fmtH=h=>{ const t=Math.round(h*60), hh=Math.floor(t/60), mm=t%60; return hh&&mm?`${hh}h${String(mm).padStart(2,'0')}`:hh?`${hh} h`:`${mm} min`; };
+  function upd(){
+    const v=Object.fromEntries(ids.map(i=>[i, parseFloat($('#s-'+i).value)]));
+    ids.forEach(i=>{ const el=$('#s-'+i); el.style.setProperty('--p', ((el.value-el.min)/(el.max-el.min)*100)+'%'); });
+    $('#o-km').textContent=v.km+' km'; $('#o-h').textContent=fmtH(v.h); $('#o-aj').textContent=v.aj; $('#o-an').textContent=v.an; $('#o-mes').textContent=v.mes;
+    const custoKm=S.precoLitro/S.consumo+S.depr;
+    const soKm=(custoKm*v.km+S.taxa)*(1+S.margem/100);
+    let cj=(custoKm*v.km+S.taxa+v.h*S.hora+v.aj*S.ajud+v.an*S.andar)*(1+S.margem/100);
+    cj=Math.max(cj,S.minimo); cj=Math.ceil(cj/S.arred)*S.arred;
+    const dif=Math.max(0,cj-soKm);
+    $('#r-km').textContent=BRL(soKm); $('#r-cj').textContent=BRL(cj);
+    $('#r-mes').textContent=BR0(dif*v.mes); $('#r-por').textContent=`${BRL(dif)} a mais por carreto`;
+  }
+  ids.forEach(i=>$('#s-'+i).addEventListener('input',upd)); upd();
+})();
+
+/* ═════════ Planos mensal/anual ═════════ */
+$$('[data-bill]').forEach(b=>b.addEventListener('click',()=>{
+  $$('[data-bill]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-pressed',x===b); });
+  const a=b.dataset.bill==='a';
+  $('#pro-price').textContent=a?'R$ 13,25':'R$ 19,90';
+  $('#pro-per').textContent='/mês';
+  $('#pro-note').textContent=a?'R$ 159 cobrados uma vez por ano':'ou R$ 159 por ano';
+}));
+
+/* ═════════ Animações de entrada, nav e cartões 3D ═════════ */
+const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }),{threshold:.18,rootMargin:'0px 0px -40px 0px'});
+$$('.reveal,.h2').forEach(el=>io.observe(el));
+$$('.why-card.reveal,.tilt.reveal,.cond.reveal').forEach((el,i)=>el.style.transitionDelay=(i%4)*70+'ms');
+const nav=$('#nav'); const onScroll=()=>nav.classList.toggle('solid',scrollY>20); addEventListener('scroll',onScroll,{passive:true}); onScroll();
+if(matchMedia('(hover:hover)').matches){
+  $$('.tilt').forEach(c=>{
+    c.addEventListener('pointermove',e=>{ const r=c.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+      c.style.setProperty('--ry',((x-.5)*14)+'deg'); c.style.setProperty('--rx',((.5-y)*14)+'deg'); c.style.setProperty('--mx',x*100+'%'); c.style.setProperty('--my',y*100+'%'); });
+    c.addEventListener('pointerleave',()=>{ c.style.setProperty('--rx','0deg'); c.style.setProperty('--ry','0deg'); });
+  });
+  const pw=$('#phone-wrap'), ph=$('#phone');
+  pw.addEventListener('pointermove',e=>{ const r=pw.getBoundingClientRect(); const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5; ph.style.setProperty('--py',(x*30-6)+'deg'); ph.style.setProperty('--px',(-y*16+4)+'deg'); });
+  pw.addEventListener('pointerleave',()=>{ ph.style.removeProperty('--py'); ph.style.removeProperty('--px'); });
+} else {
+  // no celular, o aparelho se endireita conforme a rolagem
+  const ph=$('#phone');
+  addEventListener('scroll',()=>{ const r=ph.getBoundingClientRect(); const k=Math.min(1,Math.max(0,1-(r.top+r.height/2)/innerHeight)); ph.style.setProperty('--py',(-22+k*22)+'deg'); ph.style.setProperty('--px',(10-k*8)+'deg'); },{passive:true});
+}
+</script>
+
+<!-- ═════════ Cena 3D (three.js) ═════════ -->
+<script type="module">
+const stage=document.getElementById('stage'), canvas=document.getElementById('truck3d');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+try{
+  const THREE=await import('three');
+  const {RoundedBoxGeometry}=await import('three/addons/geometries/RoundedBoxGeometry.js');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(32,1,.1,100);
+  camera.position.set(9.5,5.8,10.5); camera.lookAt(0,1.0,0);
+
+  scene.add(new THREE.HemisphereLight(0xfff4d6,0x1b1e24,1.25));
+  const sun=new THREE.DirectionalLight(0xffffff,2.6); sun.position.set(5,9,6); sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:1,far:30}); sun.shadow.radius=6; sun.shadow.bias=-0.0005;
+  scene.add(sun);
+  const rim=new THREE.DirectionalLight(0xF5B700,1.2); rim.position.set(-6,3,-5); scene.add(rim);
+
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.ShadowMaterial({opacity:.35}));
+  ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+
+  const M=(color,o={})=>new THREE.MeshStandardMaterial({color,roughness:.5,metalness:.05,...o});
+  const yellow=M(0xF5B700,{roughness:.38,metalness:.15}), white=M(0xF4F2EC,{roughness:.55}), dark=M(0x1B1E24,{roughness:.7}),
+        tire=M(0x15171B,{roughness:.9}), grey=M(0xA4AAB2,{roughness:.3,metalness:.7}), glass=M(0x22303E,{roughness:.08,metalness:.4}),
+        light=new THREE.MeshStandardMaterial({color:0xFFF6D8,emissive:0xFFE9A8,emissiveIntensity:1.4}), card=M(0xC8955A,{roughness:.85}), tape=M(0xE7C892,{roughness:.6});
+  const add=(parent,geo,mat,x,y,z)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; parent.add(m); return m; };
+  const RB=(w,h,d,r)=>new RoundedBoxGeometry(w,h,d,4,r);
+
+  const truck=new THREE.Group(); scene.add(truck);
+  add(truck,new THREE.BoxGeometry(4.7,.28,1.6),dark,.05,.62,0);                    // chassi
+  add(truck,RB(3.05,2.0,1.95,.1),white,-.82,1.78,0);                               // baú
+  add(truck,RB(3.07,.26,1.97,.05),yellow,-.82,1.02,0);                             // faixa
+  [-1,1].forEach(s=>{ const lg=add(truck,RB(.62,.62,.04,.1),yellow,-.82,1.95,s*.985);  // logo nas laterais
+                      add(truck,RB(.34,.34,.03,.05),dark,-.82,1.95,s*1.0); });
+  add(truck,RB(1.4,1.5,1.85,.18),yellow,1.47,1.32,0);                              // cabine
+  add(truck,RB(.9,.62,1.87,.12),yellow,1.35,2.02,0);                              // teto
+  add(truck,new THREE.BoxGeometry(.06,.62,1.58),glass,2.17,1.67,0);               // para-brisa
+  [-1,1].forEach(s=>add(truck,new THREE.BoxGeometry(.74,.52,.02),glass,1.5,1.7,s*.93));      // janelas
+  add(truck,RB(.2,.3,1.8,.06),grey,2.2,.62,0);                                     // para-choque
+  [-1,1].forEach(s=>add(truck,new THREE.BoxGeometry(.04,.16,.32),light,2.19,1.0,s*.62));     // faróis
+  [-1,1].forEach(s=>add(truck,new THREE.BoxGeometry(.18,.12,.03),dark,1.95,1.6,s*.96));      // retrovisores
+  const wheels=[];
+  [[1.45,.83],[1.45,-.83],[-1.55,.83],[-1.55,-.83]].forEach(([x,z])=>{
+    const w=new THREE.Group(); w.position.set(x,.43,z); truck.add(w);
+    const t=add(w,new THREE.CylinderGeometry(.43,.43,.34,28),tire,0,0,0); t.rotation.x=Math.PI/2;
+    const h=add(w,new THREE.CylinderGeometry(.2,.2,.36,16),grey,0,0,0); h.rotation.x=Math.PI/2;
+    wheels.push(w);
+  });
+
+  // caixas flutuando
+  const boxes=[];
+  [[-2.9,3.1,1.3,.75],[2.9,3.3,-1.2,.62],[.2,3.95,1.9,.5]].forEach(([x,y,z,s],i)=>{
+    const g=new THREE.Group(); g.position.set(x,y,z); scene.add(g);
+    add(g,RB(s,s*.75,s*.8,.04),card,0,0,0);
+    add(g,new THREE.BoxGeometry(s*1.01,s*.76,s*.16),tape,0,0,0);
+    g.userData={y,ph:i*2.1,r:.3+i*.15}; boxes.push(g);
+  });
+
+  // pinos A e B e o caminho tracejado no chão
+  const pin=(color,x,z)=>{ const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+    add(g,new THREE.SphereGeometry(.34,24,16),M(color,{roughness:.35}),0,1.25,0);
+    const c=add(g,new THREE.ConeGeometry(.3,.75,24),M(color,{roughness:.35}),0,.72,0); c.rotation.x=Math.PI;
+    add(g,new THREE.SphereGeometry(.13,16,12),M(0xffffff),0,1.27,.3);
+    return g; };
+  const pA=pin(0x1F7A44,-3.3,2.6), pB=pin(0x2A2F38,2.9,-2.7);
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(-3.3,.02,2.6),new THREE.Vector3(-1.6,.02,2.9),new THREE.Vector3(.4,.02,2.1),new THREE.Vector3(2.4,.02,-.4),new THREE.Vector3(2.9,.02,-2.7)]);
+  const dots=new THREE.InstancedMesh(new THREE.CylinderGeometry(.09,.09,.03,12),M(0xF5B700,{emissive:0x5a4300}),34);
+  const tmp=new THREE.Object3D(); for(let i=0;i<34;i++){ const p=curve.getPoint(i/33); tmp.position.copy(p); tmp.updateMatrix(); dots.setMatrixAt(i,tmp.matrix); }
+  scene.add(dots);
+
+  // interação: arrastar para girar + seguir o ponteiro
+  let target=.2, angle=.2, drag=null, last=performance.now(), visible=true, idle=0;
+  const onDown=e=>{ drag={x:e.clientX,a:target}; canvas.setPointerCapture?.(e.pointerId); };
+  const onMove=e=>{ if(drag){ target=drag.a+(e.clientX-drag.x)*.008; idle=0; } };
+  const onUp=()=>{ drag=null; };
+  canvas.addEventListener('pointerdown',onDown); addEventListener('pointermove',onMove); addEventListener('pointerup',onUp);
+  if(matchMedia('(hover:hover)').matches) stage.parentElement.addEventListener('pointermove',e=>{ if(drag) return; const r=stage.getBoundingClientRect(); target=.2+((e.clientX-r.left)/r.width-.5)*.9; idle=0; });
+
+  const resize=()=>{ const w=stage.clientWidth, h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h;
+    camera.fov = w<600 ? 36 : 31; camera.updateProjectionMatrix(); };
+  new ResizeObserver(resize).observe(stage); resize();
+  new IntersectionObserver(([e])=>{ visible=e.isIntersecting; if(visible){ last=performance.now(); requestAnimationFrame(tick); } }).observe(stage);
+
+  function tick(now){
+    if(!visible) return;
+    const dt=Math.min(.05,(now-last)/1000); last=now; const t=now/1000;
+    idle+=dt; if(!drag && idle>2.5 && !reduce) target=.2+Math.sin(t*.35)*.5;
+    angle+=(target-angle)*Math.min(1,dt*4);
+    truck.rotation.y=angle; dots.rotation.y=angle*.25; pA.rotation.y=pB.rotation.y=t*.8;
+    if(!reduce){
+      truck.position.y=Math.sin(t*6)*.015;
+      wheels.forEach(w=>w.rotation.z-=dt*3.2);
+      boxes.forEach(b=>{ const u=b.userData; b.position.y=u.y+Math.sin(t*1.2+u.ph)*.18; b.rotation.y+=dt*u.r; b.rotation.x=Math.sin(t*.8+u.ph)*.25; });
+    }
+    renderer.render(scene,camera);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}catch(err){ console.warn('3D indisponível',err); stage.classList.add('nogl'); canvas.style.display='none'; }
+</script>
+</body>
+</html>
