@@ -1,0 +1,20 @@
+{
+  "name": "CarretoJá — Orçamento, agenda e lucro do carreto",
+  "short_name": "CarretoJá",
+  "description": "Orçamento justo de carreto em segundos, agenda dos serviços e lucro real do mês.",
+  "start_url": "./carretoja.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F7F6F2",
+  "theme_color": "#F7F6F2",
+  "categories": ["productivity", "business", "utilities"],
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Novo orçamento", "short_name": "Orçar", "url": "./carretoja.html" }
+  ]
+}
