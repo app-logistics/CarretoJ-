@@ -1,6 +1,6 @@
-const CACHE_NAME = 'carretoja-v2';
+const CACHE_NAME = 'carretoja-v3';
 const STATIC_ASSETS = ['./carretoja.html', './manifest.json', './icon-192.png', './icon-512.png'];
-const CACHE_DOMAINS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com', 'basemaps.cartocdn.com'];
+const CACHE_DOMAINS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'unpkg.com', 'cdn.jsdelivr.net', 'basemaps.cartocdn.com'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()));
@@ -12,7 +12,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
   // APIs de rota e endereço: sempre rede
-  if (url.hostname.includes('openrouteservice.org') || url.hostname.includes('nominatim')) return;
+  if (url.hostname.includes('openrouteservice.org') || url.hostname.includes('nominatim') || url.hostname.includes('supabase.co')) return;
   // fontes, Leaflet e mapas: cache primeiro
   if (CACHE_DOMAINS.some(d => url.hostname.includes(d))) {
     e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
